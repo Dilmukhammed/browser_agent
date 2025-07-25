@@ -1,0 +1,3 @@
+User Goal: Find the price of the cheapest laptop on amazon.com
+Action History:
+No actions taken yet.

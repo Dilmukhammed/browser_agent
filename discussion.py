@@ -70,16 +70,17 @@ def run_discussion(user_prompt):
 
     if os.path.exists("decisions.txt"):
         os.remove("decisions.txt")
-    if os.path.exists("discussion.txt"):
-        os.remove("discussion.txt")
+
+    with open("discussion.txt", "r") as f:
+        discussion_history = f.read()
 
     # Phase 1: Independent Proposals
-    discussion_history = "Phase 1: Independent Proposals\n\n"
+    discussion_history += "Phase 1: Independent Proposals\n\n"
 
     result1 = model1.discuss(user_prompt, "")
     proposal1 = result1['suggestion']
     discussion_history += f"Analyst_A's Initial Proposal:\n{proposal1}\n\n"
-    with open("discussion.txt", "w") as f:
+    with open("discussion.txt", "a") as f:
         f.write(discussion_history)
 
     result2 = model2.discuss(user_prompt, "")

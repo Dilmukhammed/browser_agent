@@ -161,6 +161,7 @@ class Worker:
                 # --- Шаг 3: Проверяем, выбрал ли ИИ инструмент ---
                 if response_message.tool_calls:
                     print("✅ OpenAI выбрал инструмент. Выполняем...")
+                    executed_actions = []
                     for tool_call in response_message.tool_calls:
                         function_name = tool_call.function.name
                         # Аргументы приходят в виде строки JSON, парсим их
@@ -175,10 +176,12 @@ class Worker:
                             self.messages.append(response_message)
                             user_answer = input("Ваш ответ: ")
                             tool_result = f"Пользователь ответил: '{user_answer}'"
+                            executed_actions.append(f"ask_user_for_clarification: {question}")
 
                         else:
                             # --- Шаг 4: Выполняем реальный MCP инструмент ---
                             tool_result = await self._session.call_tool(function_name, function_args)
+                            executed_actions.append(f"{function_name}({function_args})")
                             if tool_result and isinstance(tool_result, object):
                                 # Достаем JSON-строку, как в нашем самом первом обсуждении
                                 tool_result = tool_result.content[0].text
@@ -203,6 +206,8 @@ class Worker:
                             "content": str(tool_result),
                         })
                         print(self.messages)
+
+                    return executed_actions
 
                     # --- Шаг 6: Второй вызов OpenAI для финального ответа ---
                 else:
