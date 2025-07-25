@@ -1,6 +1,7 @@
 import openai
 import os
 from dotenv import load_dotenv
+import time
 
 load_dotenv()
 
@@ -14,8 +15,8 @@ class Coordinator:
         )
         self.messages = [{"role": "system", "content": self.system_prompt}]
 
-    def coordinate(self, discussion_history, user_prompt):
-        self.messages.append({"role": "user", "content": f"The user's request is: {user_prompt}\n\nHere is the discussion between the two models:\n{discussion_history}"})
+    def coordinate(self, decisions, user_prompt):
+        self.messages.append({"role": "user", "content": f"The user's request is: {user_prompt}\n\nHere are the decisions from the two models:\n{decisions}"})
 
         response = self.openai_client.chat.completions.create(
             model="gemini-2.5-flash-lite-preview-06-17",
@@ -25,11 +26,19 @@ class Coordinator:
         return decision
 
 def run_coordinator(user_prompt):
-    with open("discussion.txt", "r") as f:
-        discussion_history = f.read()
+    while not os.path.exists("decisions.txt"):
+        time.sleep(1)
 
+    while True:
+        with open("decisions.txt", "r") as f:
+            decisions = f.readlines()
+        if len(decisions) >= 2:
+            break
+        time.sleep(1)
+
+    decisions_str = "".join(decisions)
     coordinator = Coordinator("coordinator_model_prompt.txt")
-    decision = coordinator.coordinate(discussion_history, user_prompt)
+    decision = coordinator.coordinate(decisions_str, user_prompt)
 
     print("--- Coordinator's Decision ---")
     print(decision)
