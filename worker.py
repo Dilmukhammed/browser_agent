@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class MCPClient:
+class Worker:
     """Клиент для работы с MCP сервером и OpenAI API."""
 
     def __init__(self, server_directory: str = "C:/Users/dimaa/PycharmProjects/agent_15_02/mcp_test/telegram-mcp"):
@@ -50,7 +50,7 @@ class MCPClient:
             await self._session.initialize()
             logger.info("✅ MCP сессия инициализирована.")
 
-    async def _get_tools(self):
+    async def get_tools(self):
         """Получает и кэширует список инструментов."""
         if self._cached_tools is None:
             await self._ensure_connection()
@@ -138,7 +138,7 @@ class MCPClient:
             await self._ensure_connection()
 
             # Получаем инструменты (из кэша, если уже загружены)
-            openai_tools = await self._get_tools()
+            openai_tools = await self.get_tools()
 
             # --- Шаг 1: Запрос пользователя ---
             print(f"\n💬 Пользователь: {user_prompt}")
@@ -222,33 +222,3 @@ class MCPClient:
         """Очищает историю сообщений."""
         self.messages = []
         print("🔄 История разговора очищена.")
-
-
-async def main():
-    client = MCPClient()
-    try:
-        print("🚀 MCP Client запущен. Введите 'exit' для выхода, 'reset' для очистки истории.")
-        while True:
-            req = input("\nReq: ").strip()
-
-            if req.lower() == 'exit':
-                break
-            elif req.lower() == 'reset':
-                client.reset_conversation()
-                continue
-            elif not req:
-                continue
-
-            try:
-                await client.run(req)
-            except Exception as e:
-                print(f"❌ Ошибка: {e}")
-
-    except KeyboardInterrupt:
-        print("\n👋 Завершение работы...")
-    finally:
-        await client.close()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
